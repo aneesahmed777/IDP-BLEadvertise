@@ -1,228 +1,240 @@
 package com.aneesahmed777.ble_advertise;
 
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.le.AdvertiseCallback;
-import android.bluetooth.le.AdvertiseData;
-import android.bluetooth.le.AdvertiseSettings;
-import android.bluetooth.le.BluetoothLeAdvertiser;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.os.ParcelUuid;
-import android.support.v4.app.ActivityCompat;
+import android.content.*;
+import android.support.constraint.ConstraintLayout;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.support.design.widget.Snackbar;
 
-import java.nio.charset.Charset;
-import java.util.HashSet;
-import java.util.UUID;
+import java.util.Calendar;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+final class MainBroadcastReceiver extends BroadcastReceiver {
+    private static final MainBroadcastReceiver theBroadcastReceiver;
 
-    private LinearLayout mLayout;
-    private TextView mText;
-    private Button mAdvertiseButton;
-    private Button mDiscoverButton;
-    private HashSet<String> permissionsNotGranted;
-    private static HashSet<String> permissions;
-    private final int REQUEST_PERMISSIONS_CODE = 123;
-    private final static int REQUEST_ENABLE_BLUETOOTH_CODE = 456;
+    private static Boolean getInstance_hasBeenCalledAtleastOnce = false;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        mLayout = (LinearLayout) findViewById( R.id.layout);
-        mText = (TextView) findViewById( R.id.text );
-        mDiscoverButton = (Button) findViewById( R.id.discover_btn );
-        mAdvertiseButton = (Button) findViewById( R.id.advertise_btn );
-
-        mDiscoverButton.setOnClickListener( this );
-        mAdvertiseButton.setOnClickListener( this );
-
-        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            Toast.makeText(this, "BLE not supported !!!", Toast.LENGTH_SHORT).show();
-            mAdvertiseButton.setEnabled(false);
-            mDiscoverButton.setEnabled(false);
-        }
-
-        if ( BluetoothAdapter.getDefaultAdapter().isMultipleAdvertisementSupported() )
-            mText.setText("Multiple advertisement supported.");
-        else
-            mText.setText("Multiple advertisement not supported.");
-
-        permissions = new HashSet<>();
-        permissions.add(android.Manifest.permission.BLUETOOTH);
-        permissions.add(android.Manifest.permission.BLUETOOTH_ADMIN);
-        permissions.add(android.Manifest.permission.ACCESS_COARSE_LOCATION);
-
-        permissionsNotGranted = new HashSet<>();
+    static {
+        theBroadcastReceiver = new MainBroadcastReceiver();
     }
 
-    @Override
-    public void onClick(View v) {
-        if( v.getId() == R.id.discover_btn ) {
-            discover();
-        } else if( v.getId() == R.id.advertise_btn ) {
-            advertise();
-        }
+    private MainBroadcastReceiver() {  // Prevents instantiation
+        Log.d("MainBroadcastReceiver", "MainBroadcastReceiver()");
     }
 
-    private void showPermissionsRationale() {
-        String prompt = "This app requires Bluetooth and Location permissions to access the BLE chip in your device.";
-        Snackbar mySnackbar = Snackbar.make(mLayout, prompt, Snackbar.LENGTH_INDEFINITE);
-        mySnackbar.setAction("Proceed", new RequestPermissionsProceedListener());
-        TextView mySnackbarTextView = mySnackbar.getView().findViewById(android.support.design.R.id.snackbar_text);
-        mySnackbarTextView.setMaxLines(5);
-        mySnackbar.show();
+    public static MainBroadcastReceiver getInstance() {
+        Log.d("MainBroadcastReceiver", "getInstance()");
+        getInstance_hasBeenCalledAtleastOnce = true;
+        return theBroadcastReceiver;
     }
 
-    private void requestPermissions() {
-        if (permissionsNotGranted.isEmpty())
-            return;
-        String[] permissionsNotGrantedArray = new String[permissionsNotGranted.size()];
-        permissionsNotGrantedArray = permissionsNotGranted.toArray(permissionsNotGrantedArray);
-        ActivityCompat.requestPermissions(this, permissionsNotGrantedArray, REQUEST_PERMISSIONS_CODE);
+    public static Boolean getInstance_hasBeenCalledBefore() {
+        return getInstance_hasBeenCalledAtleastOnce;
     }
 
-    private boolean checkPermissions() {
-        permissionsNotGranted.clear();
-        for (String permission: permissions) {
-            if (android.support.v4.content.ContextCompat.checkSelfPermission(this, permission)
-                    != PackageManager.PERMISSION_GRANTED) {
-                permissionsNotGranted.add(permission);
-            }
-        }
-
-        Log.d("permissionsNotGranted", permissionsNotGranted.toString());
-
-        return permissionsNotGranted.isEmpty();
+    public void onReceive(Context context, Intent intent) {
+        String status = intent.getStringExtra(context.getString(R.string.key_status_action_broadcast_status));
+        Log.d("MainBroadcastReceiver", "onReceive: "+status);
     }
+}
 
-    public void advertise() {
-        boolean areReqdPermissionsGranted = checkPermissions();
-        if (!areReqdPermissionsGranted) {
-            showPermissionsRationale();
-            return;
-        }
+public class MainActivity extends AppCompatActivity {
 
-        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+    private static final int SNACKBAR_DURATION = 10000;  // 10 sec
 
-        if (bluetoothAdapter == null) {
-            String prompt = "Unable to interact with the BLE chip in your device.";
-            Snackbar mySnackbar = Snackbar.make(mLayout, prompt, Snackbar.LENGTH_INDEFINITE);
-            mySnackbar.setAction("Exit", new ExitListener());
-            mySnackbar.show();
-            return;
-        }
+    private ConstraintLayout layout;
+    private TextView txtvInfo;
+    private Button btnStart;
+    private Button btnStop;
+    private boolean working;
+    private String data;
 
-        if (!bluetoothAdapter.isEnabled()) {
-            String prompt = "The Bluetooth functionality in your device is disabled.";
-            Snackbar mySnackbar = Snackbar.make(mLayout, prompt, Snackbar.LENGTH_INDEFINITE);
-            mySnackbar.setAction("Enable", new RequestEnableBluetoothListener());
-            mySnackbar.show();
-            return;
-        }
-
-        BluetoothLeAdvertiser advertiser = bluetoothAdapter.getBluetoothLeAdvertiser();
-
-        AdvertiseSettings settings = new AdvertiseSettings.Builder()
-                .setAdvertiseMode( AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY )
-                .setTxPowerLevel( AdvertiseSettings.ADVERTISE_TX_POWER_HIGH )
-                .setConnectable( false )
-                .build();
-
-        ParcelUuid pUuid = new ParcelUuid( UUID.fromString("821adb04-1288-4dde-8587-adfe0ecf4961") );
-
-        AdvertiseData data = new AdvertiseData.Builder()
-                .setIncludeDeviceName( true )
-                .addServiceData( pUuid, "Hello!!!".getBytes( Charset.forName( "UTF-8" ) ) )
-                .build();
-
-        AdvertiseCallback advertisingCallback = new AdvertiseCallback() {
-            @Override
-            public void onStartSuccess(AdvertiseSettings settingsInEffect) {
-                Log.v("BLE","Advertising Started");
-                super.onStartSuccess(settingsInEffect);
-                mText.setText("Advertising...");
-            }
-
-            @Override
-            public void onStartFailure(int errorCode) {
-                Log.e( "BLE", "Advertising onStartFailure: " + errorCode );
-                super.onStartFailure(errorCode);
-                mText.setText("Advertising failed !!!");
-            }
-        };
-
-        advertiser.startAdvertising( settings, data, advertisingCallback );
-    }
-
-    public void discover() {
-        Toast.makeText(this, "Not yet implemented", Toast.LENGTH_SHORT).show();
-    }
-
-    class RequestPermissionsProceedListener implements View.OnClickListener {
+    private class DoNothingOnClick implements View.OnClickListener {
         @Override
         public void onClick(View v) {
-            requestPermissions();
+            // Do nothing.
         }
     }
 
-    class ExitListener implements View.OnClickListener {
+    private class ExitActivityOnClick implements View.OnClickListener {
         @Override
         public void onClick(View v) {
             finish();
         }
     }
 
-    class RequestEnableBluetoothListener implements View.OnClickListener {
+    private class BtnStartListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
-            Intent enableBluetoothIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBluetoothIntent, REQUEST_ENABLE_BLUETOOTH_CODE);
+            startAdvertising();
+        }
+    }
+
+    private class BtnStopListener implements View.OnClickListener {
+        @Override
+        public void onClick(View v) {
+            stopAdvertising();
         }
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        Log.d("Called", "onRequestPermissionsResult");
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (savedInstanceState == null) {
+            Log.d("MainActivity", "onCreate()");
+        }
+        else {
+            Log.d("MainActivity", "onCreate() with bundle");
+        }
 
-        switch (requestCode) {
-            case REQUEST_PERMISSIONS_CODE: {
-                if (grantResults.length > 0) {
-                    for (int i = 0; i < grantResults.length; ++i) {
-                        if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                            permissionsNotGranted.remove(permissions[i]);
-                        }
-                    }
-                }
+        setContentView(R.layout.activity_main);
 
-                Log.d("permissionsNotGranted", permissionsNotGranted.toString());
+        layout = findViewById(R.id.layout);
+        btnStart = findViewById(R.id.btn_start);
+        btnStop = findViewById(R.id.btn_stop);
+        txtvInfo = findViewById(R.id.txtv_info);
 
-                boolean areReqdPermissionsGranted = permissionsNotGranted.isEmpty();
-                if (areReqdPermissionsGranted)
-                    advertise();
-            }
+        btnStart.setOnClickListener(new BtnStartListener());
+        btnStop.setOnClickListener(new BtnStopListener());
+
+        txtvInfo.setText("");
+        btnStop.setEnabled(false);
+        working = false;
+        data = null;
+
+        if (savedInstanceState != null)
+            loadStateFromBundle(savedInstanceState);
+        else {
+            Context context = getApplicationContext();
+            String sharedPrefFilename = getString(R.string.file_sharedpref_ble_advertising_info);
+            SharedPreferences sharedPref = context.getSharedPreferences(sharedPrefFilename, Context.MODE_PRIVATE);
+            working = sharedPref.getBoolean(getString(R.string.key_working_sharedpref_ble_advertising_info), false);
+            data = sharedPref.getString(getString(R.string.key_data_sharedpref_ble_advertising_info), null);
+
+            Log.d("MainActivity", "onCreate: load from sharedPref: "+working+", "+data);
+
+            btnStart.setEnabled(!working);
+            btnStop.setEnabled(working);
+            txtvInfo.setText(data);
+        }
+
+        if (!MainBroadcastReceiver.getInstance_hasBeenCalledBefore()) {
+            LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(this);
+            IntentFilter statusIntentFilter = new IntentFilter(getString(R.string.action_broadcast_status));
+            localBroadcastManager.registerReceiver(MainBroadcastReceiver.getInstance(), statusIntentFilter);
         }
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    protected void onStart() {
+        super.onStart();
+        Log.d("MainActivity", "onStart()");
+    }
 
-        switch (requestCode) {
-            case REQUEST_ENABLE_BLUETOOTH_CODE: {
-                if (resultCode == RESULT_OK)
-                    advertise();
-            }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d("MainActivity", "onResume()");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d("MainActivity", "onPause()");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d("MainActivity", "onStop()");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d("MainActivity", "onDestroy()");
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        Log.d("MainActivity", "onSaveInstanceState()");
+
+        saveStateIntoBundle(savedInstanceState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        Log.d("MainActivity", "onRestoreInstanceState() with bundle");
+
+        loadStateFromBundle(savedInstanceState);
+    }
+
+    private void saveStateIntoBundle(Bundle savedInstanceState) {
+        savedInstanceState.putBoolean(getString(R.string.key_working_bundle_savedInstanceState), working);
+        savedInstanceState.putString(getString(R.string.key_data_bundle_savedInstanceState), data);
+        Log.d("MainActivity", "saveStateIntoBundle: "+working+", "+data);
+    }
+
+    private void loadStateFromBundle(Bundle savedInstanceState) {
+        working = savedInstanceState.getBoolean(getString(R.string.key_working_bundle_savedInstanceState));
+        data = savedInstanceState.getString(getString(R.string.key_data_bundle_savedInstanceState));
+        Log.d("MainActivity", "loadStateFromBundle: "+working+", "+data);
+
+        btnStart.setEnabled(!working);
+        btnStop.setEnabled(working);
+        txtvInfo.setText(data);
+    }
+
+    private void startAdvertising() {
+        Log.d("MainActivity", "startAdvertising()");
+
+        data = Calendar.getInstance().getTime().toString();
+
+        Context context = getApplicationContext();
+        Intent intent = new Intent(context, MyService.class);
+        intent.putExtra(getString(R.string.key_data_intent_launch_MyService), data);
+        if (context.startService(intent) == null) {
+            Log.d("MainActivity", "startAdvertising: Failed to startService()");
+            txtvInfo.setText(R.string.failed_to_start_advertising);
+            return;
         }
+
+        btnStart.setEnabled(false);
+        btnStop.setEnabled(true);
+        txtvInfo.setText(data);
+        working = true;
+
+        String msg = getString(R.string.advertising_started);
+        Snackbar snackbar = Snackbar.make(layout, msg, SNACKBAR_DURATION);
+        snackbar.setAction(android.R.string.ok, new DoNothingOnClick());
+        snackbar.show();
+    }
+
+    private void stopAdvertising() {
+        Log.d("MainActivity", "stopAdvertising()");
+
+        Context context = getApplicationContext();
+        Intent intent = new Intent(context, MyService.class);
+        if (!context.stopService(intent)) {
+            Log.d("MainActivity", "stopAdvertising: stopService() returned false");
+            return;
+        }
+
+        btnStart.setEnabled(true);
+        btnStop.setEnabled(false);
+        txtvInfo.setText("");
+        data = null;
+        working = false;
+
+        String msg = getString(R.string.advertising_stopped);
+        Snackbar snackbar = Snackbar.make(layout, msg, SNACKBAR_DURATION);
+        snackbar.setAction(android.R.string.ok, new DoNothingOnClick());
+        snackbar.show();
     }
 }

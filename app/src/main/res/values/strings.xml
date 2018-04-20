@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">BLE Advertise</string>
+    <string name="advertising_started">Advertising started</string>
+    <string name="advertising_active">Advertising active</string>
+    <string name="advertising_stopped">Advertising stopped</string>
+    <string name="failed_to_start_advertising">Failed to start advertising</string>
 </resources>

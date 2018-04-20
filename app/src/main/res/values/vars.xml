@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="MissingTranslation">
+
+    <string name="action_broadcast_status">com.aneesahmed777.ble_advertise.action.BROADCAST_STATUS</string>
+    <string name="key_status_action_broadcast_status">status</string>
+    <string name="val_ok_action_broadcast_status">ok</string>
+    <string name="val_fail_action_broadcast_status">fail</string>
+    <string name="val_busy_action_broadcast_status">busy</string>
+
+    <string name="file_sharedpref_ble_advertising_info">ble_advertising_info</string>
+    <string name="key_working_sharedpref_ble_advertising_info">working</string>
+    <string name="key_data_sharedpref_ble_advertising_info">data</string>
+
+    <string name="key_working_bundle_savedInstanceState">working</string>
+    <string name="key_data_bundle_savedInstanceState">data</string>
+
+    <string name="key_data_intent_launch_MyService">data</string>
+
+</resources>
