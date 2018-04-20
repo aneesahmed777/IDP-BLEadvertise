@@ -1,7 +1,15 @@
 <resources>
     <string name="app_name">BLE Advertise</string>
-    <string name="advertising_started">Advertising started</string>
-    <string name="advertising_active">Advertising active</string>
-    <string name="advertising_stopped">Advertising stopped</string>
-    <string name="failed_to_start_advertising">Failed to start advertising</string>
+    <string name="idle">Idle</string>
+    <string name="initialising_activity">Initialising…</string>
+    <string name="starting_advertisement">Starting…</string>
+    <string name="advertisement_started">Advertisement started</string>
+    <string name="advertisement_active">Advertisement is Active</string>
+    <string name="stopping_advertisement">Stopping…</string>
+    <string name="advertisement_stopped">Advertisement stopped</string>
+    <string name="failed_to_start_advertisement">Failed to start advertising</string>
+    <string name="failed_to_stop_advertisement">Failed to stop advertising</string>
+    <string name="btn_start">Start</string>
+    <string name="btn_stop">Stop</string>
+    <string name="txtv_info">lorem ispum dolor</string>
 </resources>
