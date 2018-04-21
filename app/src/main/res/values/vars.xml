@@ -4,24 +4,28 @@
     tools:ignore="MissingTranslation">
 
     <string name="action_broadcast_status">com.aneesahmed777.ble_advertise.action.BROADCAST_STATUS</string>
-    <string name="key_status_action_broadcast_status">status</string>
+    <string name="key_status_action_broadcast_status">com.aneesahmed777.ble_advertise.key.STATUS</string>
     <string name="val_start_ok_action_broadcast_status">start_ok</string>
     <string name="val_start_fail_action_broadcast_status">start_fail</string>
     <string name="val_stop_ok_action_broadcast_status">stop_ok</string>
     <string name="val_stop_fail_action_broadcast_status">stop_fail</string>
     <string name="val_busy_action_broadcast_status">busy</string>
     <string name="val_idle_action_broadcast_status">idle</string>
-    <string name="key_data_action_broadcast_status">data</string>
+    <string name="key_data_action_broadcast_status">com.aneesahmed777.ble_advertise.key.DATA</string>
 
-    <string name="key_gettingCreated_bundle_savedInstanceState">getting_created</string>
-    <string name="key_working_bundle_savedInstanceState">working</string>
-    <string name="key_data_bundle_savedInstanceState">data</string>
-    <string name="key_txtvw_info_bundle_savedInstanceState">txtvw_info_text</string>
+    <string name="key_gettingCreated_bundle_savedState">getting_created</string>
+    <string name="key_working_bundle_savedState">working</string>
+    <string name="key_data_bundle_savedState">data</string>
+    <string name="key_txtvw_info_bundle_savedState">txtvw_info_text</string>
+    <string name="key_snackbar_resIdText_bundle_savedState">snackbar_resIdText</string>
+    <string name="key_snackbar_resIdActionText_bundle_savedState">snackbar_resIdActionText</string>
+    <string name="key_snackbar_actionListenerClassname_bundle_savedState">snackbar_actionListenerClassname</string>
+    <string name="key_snackbar_durationIndefinite_bundle_savedState">snackbar_durationIndefinite</string>
 
-    <string name="key_command_intent_service">command</string>
+    <string name="key_command_intent_service">com.aneesahmed777.ble_advertise.key.COMMAND</string>
     <string name="val_start_intent_service">start</string>
     <string name="val_stop_intent_service">stop</string>
     <string name="val_info_intent_service">info</string>
-    <string name="key_data_intent_service">data</string>
+    <string name="key_data_intent_service">com.aneesahmed777.ble_advertise.key.DATA</string>
 
 </resources>

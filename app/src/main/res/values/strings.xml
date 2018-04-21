@@ -12,4 +12,13 @@
     <string name="btn_start">Start</string>
     <string name="btn_stop">Stop</string>
     <string name="txtv_info">lorem ispum dolor</string>
+    <string name="device_lacks_ble_feature">Your device lacks BLE feature</string>
+    <string name="app_cannot_work_on_this_device">This app cannot work on your device</string>
+    <string name="device_does_not_support_bt">Your device does not support Bluetooth</string>
+    <string name="device_does_not_support_ble_ad">Your device does not support BLE advertising</string>
+    <string name="permissions_rationale">This app requires Bluetooth and Location permissions to access the BLE chip in your device.</string>
+    <string name="bt_is_disabled">The Bluetooth functionality in your device is disabled</string>
+    <string name="proceed">Proceed</string>
+    <string name="exit">Exit</string>
+    <string name="enable">Enable</string>
 </resources>
